@@ -317,7 +317,8 @@ function bindEvents() {
   elements.exportReport.addEventListener("click", exportReportCsv);
 
   elements.saveSync.addEventListener("click", () => {
-    state.scriptUrl = elements.scriptUrl.value.trim();
+    state.scriptUrl = normalizeScriptUrl(elements.scriptUrl.value);
+    elements.scriptUrl.value = state.scriptUrl;
     saveStoredState();
     setSyncStatus(state.scriptUrl ? "URL сохранен." : "Синхронизация не подключена.", state.scriptUrl ? "ok" : "");
     renderSyncState();
@@ -672,7 +673,8 @@ function postSimSession(session) {
 }
 
 async function syncNow(options = {}) {
-  state.scriptUrl = elements.scriptUrl.value.trim();
+  state.scriptUrl = normalizeScriptUrl(elements.scriptUrl.value);
+  elements.scriptUrl.value = state.scriptUrl;
   saveStoredState();
   if (!state.scriptUrl) {
     if (!options.silent) setSyncStatus("Вставьте Apps Script URL.", "error");
@@ -681,6 +683,7 @@ async function syncNow(options = {}) {
   try {
     if (!options.silent) setSyncStatus("Синхронизирую таблицу...", "");
     const data = await fetchState();
+    if (data && data.ok === false) throw new Error(data.error || "Apps Script вернул ошибку");
     if (Array.isArray(data.tasks) && data.tasks.length) {
       state.tasks = data.tasks.map(rowToTask).filter((task) => task.id && task.title);
     }
@@ -723,7 +726,7 @@ function requestJsonp(url) {
     };
     script.onerror = () => {
       cleanup();
-      reject(new Error("Не удалось прочитать Apps Script"));
+      reject(new Error("Не удалось прочитать Apps Script. Проверьте, что URL заканчивается на /exec, а доступ Web app стоит Anyone with the link"));
     };
     script.src = withQuery(url, { callback });
     document.head.append(script);
@@ -753,6 +756,7 @@ async function uploadPending() {
 }
 
 async function postPayload(payload, onSuccess) {
+  state.scriptUrl = normalizeScriptUrl(state.scriptUrl);
   if (!state.scriptUrl) {
     setSyncStatus("Запись сохранена локально. Подключите таблицу для синхронизации.", "error");
     return;
@@ -1109,6 +1113,25 @@ function withQuery(base, params) {
   const url = new URL(base);
   Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
   return url.toString();
+}
+
+function normalizeScriptUrl(value) {
+  const text = clean(value);
+  if (!text) return "";
+  try {
+    const url = new URL(text);
+    if (url.hostname === "script.google.com") {
+      const parts = url.pathname.split("/").filter(Boolean);
+      const deploymentId = parts[0] === "macros" && parts[1] === "s" ? parts[2] : "";
+      const endpoint = parts[3] || "";
+      if (deploymentId && (!endpoint || endpoint === "dev")) {
+        url.pathname = `/macros/s/${deploymentId}/exec`;
+      }
+    }
+    return url.toString();
+  } catch {
+    return text;
+  }
 }
 
 function isAppsScriptUrl(url) {
