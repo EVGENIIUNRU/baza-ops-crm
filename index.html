@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BAZA Ops CRM</title>
+    <link rel="stylesheet" href="styles.css?v=1" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Разделы CRM">
+        <div class="brand">
+          <img src="assets/baza-brand.jpg" alt="BAZA by IGNATIEV" />
+          <div>
+            <strong>BAZA Ops CRM</strong>
+            <span>Смена, задачи, SimRacing</span>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Навигация">
+          <button class="nav-item active" type="button" data-tab="overview">Обзор</button>
+          <button class="nav-item" type="button" data-tab="tasks">Задачи</button>
+          <button class="nav-item" type="button" data-tab="simracing">SimRacing</button>
+          <button class="nav-item" type="button" data-tab="reports">Отчеты</button>
+          <button class="nav-item" type="button" data-tab="sync">Таблица</button>
+        </nav>
+
+        <section class="sidebar-card">
+          <span>Смена</span>
+          <strong id="sidebarShift">-</strong>
+          <small id="sidebarDate">-</small>
+        </section>
+
+        <section class="sidebar-card">
+          <span>Синхронизация</span>
+          <strong id="syncHealth">Локально</strong>
+          <small id="lastSyncLabel">URL не подключен</small>
+        </section>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <h1>Операционный контроль клуба</h1>
+            <p>Чистота, сменные задачи и SimRacing-сессии в одном рабочем экране администратора.</p>
+          </div>
+          <div class="shift-panel">
+            <label class="field compact">
+              <span>Дата смены</span>
+              <input id="shiftDate" type="date" />
+            </label>
+            <div class="segmented" role="group" aria-label="Тип смены">
+              <button id="dayShift" class="segment active" type="button">День</button>
+              <button id="nightShift" class="segment" type="button">Ночь</button>
+            </div>
+            <label class="field compact">
+              <span>Администратор</span>
+              <input id="employeeName" type="text" placeholder="Имя" />
+            </label>
+          </div>
+        </header>
+
+        <section class="kpi-grid" aria-label="Ключевые показатели">
+          <article class="kpi">
+            <span>Задачи</span>
+            <strong id="tasksKpi">0/0</strong>
+            <small id="tasksProgressKpi">0%</small>
+          </article>
+          <article class="kpi">
+            <span>Проблемы</span>
+            <strong id="problemsKpi">0</strong>
+            <small>по смене</small>
+          </article>
+          <article class="kpi">
+            <span>SimRacing</span>
+            <strong id="simRevenueKpi">0 ₽</strong>
+            <small id="simMinutesKpi">0 мин</small>
+          </article>
+          <article class="kpi">
+            <span>Активные заезды</span>
+            <strong id="activeSessionsKpi">0</strong>
+            <small id="nextFinishKpi">нет</small>
+          </article>
+        </section>
+
+        <section class="tab-panel active" data-panel="overview">
+          <div class="section-grid">
+            <section class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <h2>Пульс смены</h2>
+                  <p>Ближайшие задачи, активные SimRacing-сессии и события, которые требуют внимания.</p>
+                </div>
+              </div>
+              <div id="activityFeed" class="activity-feed"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-header">
+                <h2>Следующее действие</h2>
+              </div>
+              <div id="nextAction" class="next-action"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="tasks">
+          <div class="workspace">
+            <section class="panel task-panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Задачи смены</h2>
+                  <p>Отметки уходят в таблицу и остаются в локальном журнале, если связь временно недоступна.</p>
+                </div>
+                <div class="toolbar">
+                  <label class="field compact">
+                    <span>Зона</span>
+                    <select id="zoneFilter"></select>
+                  </label>
+                  <label class="check-filter">
+                    <input id="problemOnly" type="checkbox" />
+                    Только проблемы
+                  </label>
+                </div>
+              </div>
+              <div id="taskList" class="task-list"></div>
+            </section>
+
+            <aside class="panel inspector">
+              <div class="panel-header">
+                <h2 id="taskTitle">Выберите задачу</h2>
+              </div>
+              <dl class="detail-list">
+                <div>
+                  <dt>Зона</dt>
+                  <dd id="taskZone">-</dd>
+                </div>
+                <div>
+                  <dt>Срок</dt>
+                  <dd id="taskDue">-</dd>
+                </div>
+                <div>
+                  <dt>Стандарт</dt>
+                  <dd id="taskStandard">-</dd>
+                </div>
+              </dl>
+              <label class="field">
+                <span>Комментарий</span>
+                <textarea id="taskNote" rows="4" placeholder="Что сделано или что не так"></textarea>
+              </label>
+              <div class="button-row">
+                <button id="markDone" class="primary-button" type="button">Готово</button>
+                <button id="markProblem" class="danger-button" type="button">Проблема</button>
+                <button id="markSkip" class="ghost-button" type="button">Не требуется</button>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="simracing">
+          <div class="workspace">
+            <section class="panel sim-panel">
+              <div class="panel-header">
+                <div>
+                  <h2>SimRacing касса</h2>
+                  <p>Выбор тарифа сразу запускает таймер и записывает продажу в таблицу.</p>
+                </div>
+              </div>
+
+              <div class="tariff-grid">
+                <button class="tariff-card" type="button" data-minutes="30" data-price="150">
+                  <span>30 минут</span>
+                  <strong>150 ₽</strong>
+                  <small>Быстрый заезд</small>
+                </button>
+                <button class="tariff-card" type="button" data-minutes="60" data-price="300">
+                  <span>60 минут</span>
+                  <strong>300 ₽</strong>
+                  <small>Полный час</small>
+                </button>
+              </div>
+
+              <div class="sale-form">
+                <label class="field">
+                  <span>Место / риг</span>
+                  <select id="simRig">
+                    <option value="SimRig 1">SimRig 1</option>
+                    <option value="SimRig 2">SimRig 2</option>
+                    <option value="SimRig 3">SimRig 3</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Гость</span>
+                  <input id="simGuest" type="text" placeholder="Имя или комментарий" />
+                </label>
+                <label class="field">
+                  <span>Оплата</span>
+                  <select id="simPayment">
+                    <option value="Наличные">Наличные</option>
+                    <option value="Карта">Карта</option>
+                    <option value="Перевод">Перевод</option>
+                  </select>
+                </label>
+                <label class="field">
+                  <span>Заметка</span>
+                  <input id="simNote" type="text" placeholder="Промо, продление, причина" />
+                </label>
+              </div>
+            </section>
+
+            <section class="panel active-sessions-panel">
+              <div class="panel-header">
+                <div>
+                  <h2>Активные заезды</h2>
+                  <p>По окончании таймера администратор получит звуковой сигнал и визуальное событие.</p>
+                </div>
+                <button id="testSound" class="ghost-button" type="button">Проверить звук</button>
+              </div>
+              <div id="activeSessions" class="session-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="reports">
+          <div class="section-grid">
+            <section class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <h2>Отчет смены</h2>
+                  <p>Сводка по выполнению задач, проблемам и SimRacing-выручке за выбранную дату и смену.</p>
+                </div>
+                <button id="exportReport" class="primary-button" type="button">Скачать CSV</button>
+              </div>
+              <div id="reportTable" class="report-table"></div>
+            </section>
+            <section class="panel">
+              <div class="panel-header">
+                <h2>Контроль честности</h2>
+              </div>
+              <div id="auditPanel" class="audit-panel"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="tab-panel" data-panel="sync">
+          <div class="section-grid">
+            <section class="panel wide">
+              <div class="panel-header">
+                <div>
+                  <h2>Google Sheets / Excel-таблица</h2>
+                  <p>Apps Script URL связывает приложение с таблицей. Все продажи и отметки пишутся как журнал и как текущий статус.</p>
+                </div>
+              </div>
+              <label class="field">
+                <span>Apps Script Web app URL</span>
+                <input id="scriptUrl" type="url" placeholder="https://script.google.com/macros/s/..." />
+              </label>
+              <div class="button-row">
+                <button id="saveSync" class="ghost-button" type="button">Сохранить URL</button>
+                <button id="syncNow" class="primary-button" type="button">Синхронизировать</button>
+              </div>
+              <div id="syncStatus" class="sync-status">Синхронизация не подключена.</div>
+            </section>
+            <section class="panel">
+              <div class="panel-header">
+                <h2>Листы таблицы</h2>
+              </div>
+              <ul class="sheet-list">
+                <li><strong>Задачи</strong><span>регламент смен</span></li>
+                <li><strong>Отметки</strong><span>журнал задач</span></li>
+                <li><strong>Статус смены</strong><span>текущие статусы</span></li>
+                <li><strong>SimRacing</strong><span>все продажи</span></li>
+                <li><strong>SimRacing статус</strong><span>активные и завершенные заезды</span></li>
+              </ul>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script type="module" src="app.js?v=1"></script>
+  </body>
+</html>

@@ -1,0 +1,90 @@
+{
+  "name": "baza-ops-crm",
+  "version": "1.0.0",
+  "description": "BAZA operations CRM with cleanliness tasks and SimRacing session accounting.",
+  "author": "BAZA by IGNATIEV",
+  "private": true,
+  "main": "electron/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "desktop": "electron .",
+    "template": "node scripts/create-template.mjs",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:win": "electron-builder --win --x64 --publish never",
+    "build:desktop": "npm run build:mac && npm run build:win",
+    "build:windows": "npm run build:win"
+  },
+  "devDependencies": {
+    "electron": "^40.4.0",
+    "electron-builder": "^26.4.0"
+  },
+  "build": {
+    "appId": "ru.baza.opscrm",
+    "productName": "BAZA Ops CRM",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "app.js",
+      "apps-script.gs",
+      "assets/**/*",
+      "electron/**/*"
+    ],
+    "win": {
+      "icon": "assets/baza-app-icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "icon": "assets/baza-app-icon.icns",
+      "category": "public.app-category.business",
+      "identity": null,
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "BAZA Ops CRM"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
+    },
+    "dmg": {
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    }
+  }
+}
