@@ -72,8 +72,10 @@ https://evgeniiunru.github.io/baza-ops-crm/
 5. Тип deployment: `Web app`.
 6. `Execute as`: `Me`.
 7. `Who has access`: `Anyone with the link`.
-8. Скопируйте `Web app URL`.
+8. Скопируйте именно `Web app URL`; он должен заканчиваться на `/exec`.
 9. В приложении откройте вкладку `Таблица`, вставьте URL и нажмите `Сохранить URL`, затем `Синхронизировать`.
+
+Не используйте ссылку редактора Apps Script и test/development URL с `/dev`: публичный сайт должен работать через deployed Web app URL с `/exec`.
 
 ## Часовой пояс
 
